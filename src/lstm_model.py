@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class LSTMAutocomplete(nn.Module):
-    def __init__(self, vocab_size, embedding_dim=128, hidden_dim=256, num_layers=3, dropout=0.2):
+    def __init__(self, vocab_size, embedding_dim=128, hidden_dim=128, num_layers=3, dropout=0.2):
         """
         LSTM модель для автодополнения текста
         
@@ -79,7 +79,8 @@ class LSTMAutocomplete(nn.Module):
         c0 = torch.zeros(self.num_layers, batch_size, self.hidden_dim).to(device)
         return (h0, c0)
     
-    def predict_next_token(self, input_sequence, top_k=5):
+
+    def predict_next_token(self, input_sequence):
         """
         Предсказывает следующий токен для автодополнения
         
@@ -103,18 +104,21 @@ class LSTMAutocomplete(nn.Module):
             # Softmax для получения вероятностей
             probs = torch.softmax(logits[0], dim=0)  # [vocab_size]
             
-            # Берем top-k наиболее вероятных токенов
-            top_probs, top_indices = torch.topk(probs, top_k)
+            # Реализация для top-K вариантов
+            # # Берем top-k наиболее вероятных токенов
+            # top_probs, top_indices = torch.topk(probs, top_k)
             
-            # Возвращаем список кандидатов
-            top_tokens = [
-                (token_id.item(), prob.item()) 
-                for token_id, prob in zip(top_indices, top_probs)
-            ]
+            # # Возвращаем список кандидатов
+            # top_tokens = [
+            #     (token_id.item(), prob.item()) 
+            #     for token_id, prob in zip(top_indices, top_probs)
+            # ]
             
-            return top_tokens
+            # return top_tokens
+            top_prob, top_token = torch.max(probs, dim=0)
+            return top_token.item(), top_prob.item()
     
-    def suggest_completion(self, text, tokenizer, top_k=5):
+    def suggest_completion(self, text, tokenizer):
         """
         Удобный метод для предложения автодополнения
         
@@ -131,22 +135,19 @@ class LSTMAutocomplete(nn.Module):
         input_tensor = torch.tensor(input_ids, dtype=torch.long)
         
         # Предсказываем следующие токены
-        top_tokens = self.predict_next_token(input_tensor, top_k=top_k)
+        top_token, probability = self.predict_next_token(input_tensor)
         
-        # Формируем предложения
-        suggestions = []
-        for token_id, prob in top_tokens:
-            # Декодируем предсказанный токен
-            predicted_token = tokenizer.decode([token_id])
+        # Декодируем предсказанный токен
+        predicted_token = tokenizer.decode([top_token])
             
-            # Формируем полное предложение
-            full_suggestion = text + " " + predicted_token
+        # Формируем полное предложение
+        full_suggestion = text + " " + predicted_token
             
-            suggestions.append({
-                'completion': predicted_token,
-                'full_text': full_suggestion,
-                'probability': prob
-            })
+        suggestions = {
+            'completion': predicted_token,
+            'full_text': full_suggestion,
+            'probability': probability
+        }
         
         return suggestions
     
