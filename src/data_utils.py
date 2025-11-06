@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import ast
+from tqdm import tqdm
 
 # Очистка строки твита
 def clean_text(text):
@@ -14,6 +15,21 @@ def clean_text(text):
     if not isinstance(text, str):
         return ""
     
+    # Словарь распространенных интернет-слов с повторами
+    common_patterns = {
+        r'b+w*a+h*a+h*ahahahahahaha\w*': 'haha',  # bwahahahahaha → haha
+        r'l+o+v+e+\w*': 'love',                    # loooove, luv → love
+        r'y+e+s+\w*': 'yes',                       # yesss, yeees → yes
+        r'n+o+\w*': 'no',                         # noooo, noo → no
+        r'g+o+d+\w*': 'good',                     # goooood → good
+        r'b+a+d+\w*': 'bad',                      # baaad → bad
+        r's+o+\w*': 'so',                         # soooo → so
+        r'v+e+r+y+\w*': 'very',                   # verry, veryy → very
+        r'r+e+a+l+y+\w*': 'really',               # reallly → really
+        r'a+w+e+s+o+m+e+\w*': 'awesome',          # aweeesome → awesome
+        r'p+l+e+a+s+e+\w*': 'please',             # pleeease → please
+        r's+o+r+r+y+\w*': 'sorry',                # sorrry → sorry
+    }
     # Привести к нижнему регистру
     text = text.lower()
     # Удалить ссылки
@@ -28,6 +44,11 @@ def clean_text(text):
     text = re.sub(r'[^a-zA-Z\s\.\,\!\?]', '', text)
     # Удалить лишние пробелы
     text = re.sub(r'\s+', ' ', text).strip()
+    # Применить замены для распространенных случаев
+    for pattern, replacement in common_patterns.items():
+        text = re.sub(pattern, replacement, text)
+    # НОРМАЛИЗАЦИЯ ПОВТОРЯЮЩИХСЯ БУКВ (2+ одинаковых букв → 2)
+    text = re.sub(r'(.)\1{2,}', r'\1\1', text)  # "loooove" → "loove"
     return text
 
 # Управление очисткой большого датасета   
