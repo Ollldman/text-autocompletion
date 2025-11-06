@@ -75,7 +75,7 @@ curl -sSL https://install.python-poetry.org | python3 -
 export PATH="$HOME/.local/bin:$PATH"
 
 # Clone and setup project
-git clone https://github.com/yourusername/text-autocompletion.git
+git clone https://github.com/Ollldman/text-autocompletion.git
 cd text-autocompletion
 
 # Install dependencies
