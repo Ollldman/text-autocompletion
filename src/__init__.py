@@ -13,3 +13,4 @@ from .model_learning_process import (
     save_model_with_metadata, 
     load_model_with_metadata)
 from .estimate_model_resources import evaluate_model_resources
+from .transformer_comparison import quick_comparison, ModelComparator
