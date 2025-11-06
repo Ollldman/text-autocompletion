@@ -259,8 +259,7 @@ def save_model_with_metadata(
         'model_info': {
             'name': model_name,
             'vocab_size': model.vocab_size,
-            'embedding_dim': model.embedding_dim,
-            'hidden_dim': model.hidden_dim,
+            'embedding_dim': model.hidden_dim,
             'num_layers': model.num_layers,
             'total_parameters': sum(p.numel() for p in model.parameters()),
             'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
