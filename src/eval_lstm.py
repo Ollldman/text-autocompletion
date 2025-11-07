@@ -39,6 +39,8 @@ def evaluate_with_rouge(model, test_loader, tokenizer, device, num_examples=5):
             total_correct += batch_correct
             total_samples += y.size(0)
             
+            """
+            # Старая версия с не верной оценкой ROUGE
             # Генерируем автодополнения для ROUGE (только первый в батче)
             input_tokens = x_batch[0]
             target_token = y_batch[0]
@@ -57,7 +59,34 @@ def evaluate_with_rouge(model, test_loader, tokenizer, device, num_examples=5):
             
             all_predictions.append(full_prediction)
             all_references.append(full_reference)
-    
+            """
+            # Для ROUGE берем СЛУЧАЙНЫЕ примеры из батча
+            batch_size = x_batch.size(0)
+            num_samples_from_batch = min(3, batch_size)  # По 3 примера из батча
+            
+            indices = torch.randperm(batch_size)[:num_samples_from_batch]
+            
+            for idx in indices:
+                input_tokens = x_batch[idx]
+                target_token = y_batch[idx]
+                
+                # Предсказание модели
+                predicted_token_id, _ = model.predict_next_token(input_tokens)
+                
+                # Декодируем ТОЛЬКО предсказанные и целевые слова
+                predicted_word = tokenizer.decode([predicted_token_id], skip_special_tokens=True)
+                target_word = tokenizer.decode([target_token.item()], skip_special_tokens=True)
+                
+                # Cравниваем только новые слова
+                all_predictions.append(predicted_word.strip())
+                all_references.append(target_word.strip())
+                
+                # Ограничиваем общее количество примеров для ROUGE
+                if len(all_predictions) >= num_examples:
+                    break
+            
+            if len(all_predictions) >= num_examples:
+                break
     # Вычисляем ROUGE метрики
     if all_predictions and all_references:
         rouge_results = rouge.compute(

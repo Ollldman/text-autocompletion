@@ -10,6 +10,7 @@ A lightweight LSTM-based neural network for text autocompletion, optimized for m
 ## 🎯 Project Overview
 
 This project aims to implement an efficient **next-word prediction** system using the LSTM architecture. The model must be lightweight enough for mobile devices while still providing good performance for real-time text completion.
+The project is intended as a prepared platform for a quick start to experiments on selecting optimal parameters for training the LSTM model.
 
 ### Key Features
 - 🧠 **LSTM-based architecture** with optimized parameters
@@ -19,24 +20,16 @@ This project aims to implement an efficient **next-word prediction** system usin
 - ⚡ **Resource monitoring** for deployment planning
 - 🎨 **Interactive training visualization**
 
-## 🏗️ Model Architecture
+## 🏗️ Model Architecture Example
 
 ```python
 LSTMAutocomplete(
-  (embedding): Embedding(30522, 128, padding_idx=0)
-  (lstm): LSTM(128, 128, num_layers=3, batch_first=True, dropout=0.2)
-  (dropout): Dropout(p=0.2, inplace=False)
+  (embedding): Embedding(30522, 256, padding_idx=0)
+  (lstm): LSTM(256, 256, num_layers=2, batch_first=True, dropout=0.3)
+  (dropout): Dropout(p=0.3, inplace=False)
   (fc): Linear(in_features=128, out_features=30522, bias=True)
 )
 ```
-
-**Specifications:**
-- **Vocabulary**: 30,522 tokens (BERT-base uncased)
-- **Embedding Dimension**: 128
-- **LSTM Layers**: 3
-- **Hidden Size**: 128
-- **Total Parameters**: ~45 million
-- **Model Size**: ~172 MB
 
 ## 📦 Installation
 
@@ -97,7 +90,7 @@ tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
 dataset = NextTokenDataset("data/train.csv", sequence_length=20)
 ```
 
-### 2. Model Training
+### 2. Model Training Example
 ```python
 from src import LSTMAutocomplete, train_complete_with_plots
 
@@ -174,7 +167,7 @@ print(f"Completion: {suggestion['completion']}")  # "I love this"
 | **Requests/Second** | 65.7 |
 | **Tokens/Second** | 1,313 |
 
-## 📁 Project Structure
+## 📁 Template Project Structure
 
 ```
 text-autocompletion/
@@ -215,13 +208,13 @@ text-autocompletion/
 ### Hyperparameters
 ```python
 {
-    "embedding_dim": 128,
-    "hidden_dim": 128, 
-    "num_layers": 3,
-    "dropout": 0.2,
-    "sequence_length": 20,
+    "embedding_dim": 256,
+    "hidden_dim": 256, 
+    "num_layers": 2,
+    "dropout": 0.3,
+    "sequence_length": 11,
     "batch_size": 256,
-    "learning_rate": 0.001
+    "learning_rate": 0.0005
 }
 ```
 
@@ -231,17 +224,29 @@ text-autocompletion/
 - **Vocabulary**: BERT-base uncased (30,522 tokens)
 - **Train/Val Split**: 80%/20%
 
+### Modules
+src.
+├── data_utils.py   *This is a module with functions for preparing data for training.*
+├── download_and_extract.py *This is a module with functions for downloading a data set.*
+├── estimate_model_resources.py *This module is currently under development and evaluates the load of the running model on the device.*
+├── eval_lstm.py    *This module contains functions for intermediate evaluation of the model on the validation set during the training process.*
+├── lstm_model.py   *This module contains the LSTM model object*
+├── ltsm_train.py   *This module contains function for training an epoch.*
+├── model_learning_process.py *This module contains functions for managing training and for outputting results during the training and evaluation phase.*
+├── next_token_dataset.py *This module contains a Dataset object to place it in DataLoader*
+└── transformer_comparison.py *This module contains an object that compares metrics and evaluates the performance of the pre-trained model and our model on the test dataset.*
+
 ## 📈 Results Analysis
 
 ### Training Progress
 ![Training Results](training_results.png)
 
-### Mobile Suitability
+### Target for Mobile Suitability
 - **✅ Model Size**: 172 MB (Good for mobile)
 - **✅ Inference Speed**: 15 ms (Excellent)
 - **✅ Overall Rating**: SUITABLE FOR MOBILE DEPLOYMENT
 
-## 🎯 Use Cases
+## 🎯 Target Use Cases
 
 - **Mobile Keyboard** - Real-time text suggestions
 - **Email Clients** - Sentence completion

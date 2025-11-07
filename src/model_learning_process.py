@@ -252,6 +252,9 @@ def save_model_with_metadata(
     
     # 1. Сохраняем веса модели
     model_path = os.path.join(save_dir, f"{model_filename}.pth")
+
+    embedding_dim = model.embedding.embedding_dim
+    hidden_dim = model.hidden_dim
     
     # Собираем метаданные
     metadata = {
@@ -259,8 +262,8 @@ def save_model_with_metadata(
         'model_info': {
             'name': model_name,
             'vocab_size': model.vocab_size,
-            'embedding_dim': model.hidden_dim,
-            'num_layers': model.num_layers,
+            'embedding_dim': embedding_dim,
+            'num_layers': hidden_dim,
             'total_parameters': sum(p.numel() for p in model.parameters()),
             'trainable_parameters': sum(p.numel() for p in model.parameters() if p.requires_grad)
         },
@@ -291,30 +294,37 @@ def save_model_with_metadata(
             'final_rouge1': results['val_metrics'][-1]['rouge']['rouge1'],
             'final_rouge2': results['val_metrics'][-1]['rouge']['rouge2'],
             'final_rougeL': results['val_metrics'][-1]['rouge']['rougeL']
-        },
+        },       
+    }
+    
+    if 'rouge' in results['val_metrics'][-1]:
+        metadata['final_metrics'].update({
+        'final_rouge1': results['val_metrics'][-1]['rouge']['rouge1'],
+        'final_rouge2': results['val_metrics'][-1]['rouge']['rouge2'],
+        'final_rougeL': results['val_metrics'][-1]['rouge']['rougeL']
+    })
         
-        # История обучения (только последние значения для экономии места)
-        'training_history': {
+    if 'training_history' in results:
+        metadata['training_history'] = results['training_history']
+    else:
+        # Создаем историю из доступных данных
+        metadata['training_history'] = {
             'train_losses': results['train_losses'],
             'val_losses': [metric['loss'] for metric in results['val_metrics']],
             'val_accuracies': [metric['accuracy'] for metric in results['val_metrics']],
-            'val_rouge1': [metric['rouge']['rouge1'] for metric in results['val_metrics']],
-            'val_rouge2': [metric['rouge']['rouge2'] for metric in results['val_metrics']]
-        },
-        
-        # Информация о токенизаторе
-        'tokenizer_info': {
-            'name': 'bert-base-uncased',
-            'vocab_size': tokenizer.vocab_size,
-            'special_tokens': {
-                'pad_token': tokenizer.pad_token,
-                'unk_token': tokenizer.unk_token,
-                'cls_token': tokenizer.cls_token,
-                'sep_token': tokenizer.sep_token
-            }
+        }
+    # Информация о токенизаторе
+    metadata['tokenizer_info'] = {
+        'name': 'bert-base-uncased',
+        'vocab_size': tokenizer.vocab_size,
+        'special_tokens': {
+            'pad_token': str(tokenizer.pad_token),
+            'unk_token': str(tokenizer.unk_token),
+            'cls_token': str(tokenizer.cls_token),
+            'sep_token': str(tokenizer.sep_token)
         }
     }
-    
+
     # Сохраняем модель с метаданными
     checkpoint = {
         'model_state_dict': model.state_dict(),

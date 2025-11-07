@@ -1,4 +1,5 @@
 from tqdm import tqdm
+import torch
 
 def train_epoch(model, loader, optimizer, criterion, device):
     """
@@ -17,8 +18,13 @@ def train_epoch(model, loader, optimizer, criterion, device):
         loss = criterion(logits, y)
 
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         total_loss += loss.item()
         total_batches += 1
+        # Очистка памяти каждые 50 батчей
+        if total_batches % 50 == 0 and device.type == 'cuda':
+            torch.cuda.empty_cache()
+            
     return total_loss / total_batches if total_batches > 0 else float('inf')
